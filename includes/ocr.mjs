@@ -1,129 +1,162 @@
+async function recognizeViaGpu(canvas, charset) {
+    // Convert canvas -> PNG blob
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+
+    // Same-origin fetch (we’ll intercept this in Playwright)
+    const res = await fetch('/gpu-ocr', {
+        method: 'POST',
+        headers: {
+            // pass the whitelist so GPU OCR can optionally use it
+            'x-fir-charset': charset || '',
+        },
+        body: blob,
+    });
+
+    if (!res.ok) {
+        const txt = await res.text().catch(() => '');
+        throw new Error(`GPU OCR failed: ${res.status} ${txt}`);
+    }
+
+    const data = await res.json();
+
+    // Match the shape screenshot.mjs expects: result.data.text
+    return {data: {text: (data.text || '').trim()}};
+}
 
 class OCR {
-  static CPU_COUNT = navigator.hardwareConcurrency || 1;
-  static DEFAULT_CONCURRENCY = Math.max(Math.round(OCR.CPU_COUNT / 2) - 1, 1);
-  static DEFAULT_STOP_DELAY = 2500;
+    static CPU_COUNT = navigator.hardwareConcurrency || 1;
+    static DEFAULT_CONCURRENCY = Math.max(Math.round(OCR.CPU_COUNT / 2) - 1, 1);
+    static DEFAULT_STOP_DELAY = 2500;
 
-  static CHARSETS = {
-    any: '',
-    quantity: '0123456789k+',
-  };
-  static DEFAULT_CHARSET = OCR.CHARSETS['quantity'];
+    static CHARSETS = {
+        any: '',
+        quantity: '0123456789k+',
+    };
+    static DEFAULT_CHARSET = OCR.CHARSETS['quantity'];
 
-  #concurrency;
-  #stop_delay;
-  #charset;
+    #concurrency;
+    #stop_delay;
+    #charset;
 
-  constructor(options) {
-    options ||= {};
-    this.#concurrency = options.concurrency || OCR.DEFAULT_CONCURRENCY;
-    this.#stop_delay = options.stop_delay || OCR.DEFAULT_STOP_DELAY;
-    this.#charset = options.charset !== undefined ? options.charset : OCR.DEFAULT_CHARSET;
-  }
-
-  async recognize(canvas) {
-    const result = await (await this.#getScheduler()).addJob('recognize', canvas);
-
-    if (this.#scheduler.getQueueLen() == 0) {
-      this.#scheduleStop();
+    constructor(options) {
+        options ||= {};
+        this.#concurrency = options.concurrency || OCR.DEFAULT_CONCURRENCY;
+        this.#stop_delay = options.stop_delay || OCR.DEFAULT_STOP_DELAY;
+        this.#charset = options.charset !== undefined ? options.charset : OCR.DEFAULT_CHARSET;
     }
 
-    return result;
-  }
+    async recognize(canvas) {
+        // If GPU backend is active, do NOT use Tesseract workers at all
+        if (window.FIR_OCR_BACKEND === 'gpu') {
+            return await recognizeViaGpu(canvas, this.#charset);
+        }
 
-  #state = 'stopped'; // 'starting', 'started', 'stopping'
-  #scheduler = undefined;
-  #starting = undefined;
-  async #getScheduler() {
-    if (this.#state == 'stopping') {
-      this.#cancelStop();
-    } else if (this.#state == 'stopped') {
-      await this.#start();
-    } else if (this.#state == 'starting') {
-      await this.#starting;
+        // Otherwise use the original Tesseract pipeline
+        const result = await (await this.#getScheduler()).addJob('recognize', canvas);
+
+        if (this.#scheduler.getQueueLen() == 0) {
+            this.#scheduleStop();
+        }
+
+        return result;
     }
 
-    return this.#scheduler;
-  }
 
-  async #start() {
-    this.#state = 'starting';
-    console.log("Launching " + this.#concurrency + " Tesseract OCR workers.");
+    #state = 'stopped'; // 'starting', 'started', 'stopping'
+    #scheduler = undefined;
+    #starting = undefined;
 
-    this.#scheduler = Tesseract.createScheduler();
+    async #getScheduler() {
+        if (this.#state == 'stopping') {
+            this.#cancelStop();
+        } else if (this.#state == 'stopped') {
+            await this.#start();
+        } else if (this.#state == 'starting') {
+            await this.#starting;
+        }
 
-    const workers = [];
-    const workerCharset = this.#charset;
-    for (let i = 0; i < this.#concurrency; ++i) {
-      const worker = Tesseract.createWorker({
-        //logger: m => console.log(m),
-        //langPath: 'https://tessdata.projectnaptha.com/4.0.0_best',
-        langPath: 'https://files.kubuxu.com/foxhole/tesseract/',
-        workerPath: 'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/3.0.3/worker.min.js',
-        corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@3.0.2/tesseract-core-simd.wasm.js',
-        //cacheMethod: 'none',
-      });
-
-      workers.push(initWorker(this.#scheduler, worker));
+        return this.#scheduler;
     }
 
-    await (this.#starting = Promise.all(workers));
-    this.#state = 'started';
+    async #start() {
+        this.#state = 'starting';
+        console.log("Launching " + this.#concurrency + " Tesseract OCR workers.");
 
-    async function initWorker(scheduler, worker) {
-      await worker.load();
-      //await worker.loadLanguage('eng');
-      //await worker.initialize('eng');
-      await worker.loadLanguage('engJost-final3');
-      await worker.initialize('engJost-final3');
-      await worker.setParameters({
-        //tessedit_ocr_engine_mode: Tesseract.OEM.LSTM_ONLY,
-        tessedit_char_whitelist: workerCharset,
-        tessedit_pageseg_mode: 7, // Tesseract.PSM.SINGLE_LINE
-        //tessedit_pageseg_mode: 8, // Tesseract.PSM.SINGLE_WORD
-        //textord_disable_pitch_test: true,
-        //classify_enable_learning: 0,
-        //classify_enable_adaptive_matcher: 0,
-        //user_defined_dpi: 10,
-        tessjs_create_hocr: 0,
-        tessjs_create_tsv: 0,
-      });
+        this.#scheduler = Tesseract.createScheduler();
 
-      scheduler.addWorker(worker);
+        const workers = [];
+        const workerCharset = this.#charset;
+        for (let i = 0; i < this.#concurrency; ++i) {
+            const worker = Tesseract.createWorker({
+                //logger: m => console.log(m),
+                //langPath: 'https://tessdata.projectnaptha.com/4.0.0_best',
+                langPath: 'https://files.kubuxu.com/foxhole/tesseract/',
+                workerPath: 'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/3.0.3/worker.min.js',
+                corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@3.0.2/tesseract-core-simd.wasm.js',
+                //cacheMethod: 'none',
+            });
+
+            workers.push(initWorker(this.#scheduler, worker));
+        }
+
+        await (this.#starting = Promise.all(workers));
+        this.#state = 'started';
+
+        async function initWorker(scheduler, worker) {
+            await worker.load();
+            //await worker.loadLanguage('eng');
+            //await worker.initialize('eng');
+            await worker.loadLanguage('engJost-final3');
+            await worker.initialize('engJost-final3');
+            await worker.setParameters({
+                //tessedit_ocr_engine_mode: Tesseract.OEM.LSTM_ONLY,
+                tessedit_char_whitelist: workerCharset,
+                tessedit_pageseg_mode: 7, // Tesseract.PSM.SINGLE_LINE
+                //tessedit_pageseg_mode: 8, // Tesseract.PSM.SINGLE_WORD
+                //textord_disable_pitch_test: true,
+                //classify_enable_learning: 0,
+                //classify_enable_adaptive_matcher: 0,
+                //user_defined_dpi: 10,
+                tessjs_create_hocr: 0,
+                tessjs_create_tsv: 0,
+            });
+
+            scheduler.addWorker(worker);
+        }
     }
-  }
 
-  #stopTimeout = undefined;
-  #scheduleStop() {
-    if (!((this.#state == 'started') || (this.#state == 'stopping'))) {
-      console.error(`scheduleStop(): invalid state=${this.#state}`);
-      return;
+    #stopTimeout = undefined;
+
+    #scheduleStop() {
+        if (!((this.#state == 'started') || (this.#state == 'stopping'))) {
+            console.error(`scheduleStop(): invalid state=${this.#state}`);
+            return;
+        }
+
+        if (this.#stopTimeout) {
+            this.#cancelStop();
+        }
+        this.#state = 'stopping';
+        this.#stopTimeout = setTimeout(this.#stop.bind(this), this.#stop_delay);
     }
 
-    if (this.#stopTimeout) {
-      this.#cancelStop();
-    }
-    this.#state = 'stopping';
-    this.#stopTimeout = setTimeout(this.#stop.bind(this), this.#stop_delay);
-  }
+    #cancelStop() {
+        if (this.#state != 'stopping') {
+            console.error(`cancelStop(): invalid state=${this.#state}`);
+            return;
+        }
 
-  #cancelStop() {
-    if (this.#state != 'stopping') {
-      console.error(`cancelStop(): invalid state=${this.#state}`);
-      return;
+        clearTimeout(this.#stopTimeout);
+        this.#stopTimeout = undefined;
+        this.#state = 'started';
     }
 
-    clearTimeout(this.#stopTimeout);
-    this.#stopTimeout = undefined;
-    this.#state = 'started';
-  }
-
-  async #stop() {
-    this.#stopTimeout = undefined;
-    this.#state = 'stopped';
-    console.log('Terminating Tesseract OCR workers.');
-    await this.#scheduler.terminate();
-  }
+    async #stop() {
+        this.#stopTimeout = undefined;
+        this.#state = 'stopped';
+        console.log('Terminating Tesseract OCR workers.');
+        await this.#scheduler.terminate();
+    }
 }
 
 export default OCR;

@@ -1,0 +1,10 @@
+services:
+  fir-ocr-gpu:
+    image: fir-ocr-gpu
+    runtime: nvidia
+    shm_size: "1gb"
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    ports:
+      - "127.0.0.1:9000:9000"

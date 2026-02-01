@@ -1,17 +1,31 @@
 services:
   fir-ocr:
-    runtime: nvidia
-    shm_size: "1gb"
     build:
       context: .
       dockerfile: Dockerfile.headless
+    container_name: fir-ocr
+    shm_size: "1gb"
+    ports:
+      - "5000:5000"
     volumes:
       - ./sample_output:/app/sample_output
       - ./sample_pictures:/app/sample_pictures
-    ports:
-      - "5000:5000"
-    restart: always
+    environment:
+      - TZ=America/Los_Angeles
+      - FIR_OCR_BACKEND=gpu          # <-- tells headless_process to use GPU OCR route
+    depends_on:
+      - fir-ocr-gpu
+    restart: unless-stopped
+
+  fir-ocr-gpu:
+    build:
+      context: ./fir-ocr-gpu
+      dockerfile: Dockerfile
+    container_name: fir-ocr-gpu
+    runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=compute,graphics,utility
-
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    ports:
+      - "9000:9000"                 # optional; mostly internal
+    restart: unless-stopped
