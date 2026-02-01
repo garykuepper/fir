@@ -1,5 +1,7 @@
 services:
   fir-ocr:
+    runtime: nvidia
+    shm_size: "1gb"
     build:
       context: .
       dockerfile: Dockerfile.headless
@@ -10,13 +12,6 @@ services:
       - "5000:5000"
     restart: always
     environment:
-      # These flags tell the NVIDIA driver to expose the GPU to Chromium
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,graphics,utility
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+
