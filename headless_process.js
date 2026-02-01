@@ -24,11 +24,10 @@ const inputVersion = args[3] || 'airborne-63';
     args: [
       '--use-gl=angle',
       '--use-angle=gl',             // Use real Hardware OpenGL
-      '--use-vulkan',               // Enable Vulkan support
-      '--enable-features=Vulkan',
-      '--disable-webgl-sandbox',
       '--ignore-gpu-blocklist',
-      '--disable-dev-shm-usage'     // Crucial for Linux Docker stability
+      '--disable-webgl-sandbox',    // Allows Chromium to bypass sandbox for WebGL
+      '--disable-dev-shm-usage',
+      '--no-sandbox'                // Often required for GPU access in root Docker containers
         ]
       });
   const page = await browser.newPage();
