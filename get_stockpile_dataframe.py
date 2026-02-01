@@ -4,7 +4,7 @@ import os
 from tabulate import tabulate
 
 def get_stockpile_df(image_relative_path, label, stockpile="Public", version="airborne-63"):
-    url = "http://localhost:5000/process"
+    url = "http://192.168.50.44:5000/process"
     payload = {
         "image": image_relative_path,
         "label": label,

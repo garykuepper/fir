@@ -23,12 +23,14 @@ const inputVersion = args[3] || 'airborne-63';
     headless: true,
     args: [
       '--use-gl=angle',
-      '--use-angle=gl',        // Use actual OpenGL/Hardware
-      '--enable-features=Vulkan', // Enable Vulkan for better TF.js support
+      '--use-angle=gl',             // Use real Hardware OpenGL
+      '--use-vulkan',               // Enable Vulkan support
+      '--enable-features=Vulkan',
       '--disable-webgl-sandbox',
-      '--ignore-gpu-blocklist'    // Force GPU usage even if driver is "unsupported"
-    ]
-  });
+      '--ignore-gpu-blocklist',
+      '--disable-dev-shm-usage'     // Crucial for Linux Docker stability
+        ]
+      });
   const page = await browser.newPage();
   
   page.on('console', msg => console.log(`[BROWSER]: ${msg.text()}`));
