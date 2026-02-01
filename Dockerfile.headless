@@ -1,0 +1,25 @@
+# Use Playwright's official image which has Node and Chromium dependencies
+FROM mcr.microsoft.com/playwright:v1.49.1-jammy
+
+# Install Python
+RUN apt-get update && apt-get install -y python3 python3-pip
+# Install Flask for the API
+RUN pip3 install flask
+
+# Set working directory
+WORKDIR /app
+
+# Copy project files
+COPY . .
+
+# Install Node dependencies and then specifically install the browser binaries
+RUN npm install playwright
+RUN npx playwright install chromium
+
+# Create output directory
+RUN mkdir -p /app/sample_output
+# Port 5000 for the API, 8005 for the internal FIR site
+EXPOSE 5000 8005
+
+# The entry point will be our python wrapper
+ENTRYPOINT ["python3", "docker_wrapper.py"]

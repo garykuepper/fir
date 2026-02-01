@@ -1,0 +1,19 @@
+services:
+  fir-ocr:
+    build:
+      context: .
+      dockerfile: Dockerfile.headless
+    volumes:
+      - ./sample_output:/app/sample_output
+      - ./sample_pictures:/app/sample_pictures
+    ports:
+      - "5000:5000"
+    restart: always
+    # --- ADD THIS FOR LINUX GPU SUPPORT ---
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
