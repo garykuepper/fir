@@ -6,7 +6,7 @@ import os
 app = Flask(__name__)
 
 # Load once → stays in GPU memory
-ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=True)
+ocr = PaddleOCR(lang='en', use_textline_orientation=True)
 
 @app.route("/ocr", methods=["POST"])
 def run_ocr():
