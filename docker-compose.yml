@@ -9,7 +9,10 @@ services:
     ports:
       - "5000:5000"
     restart: always
-    # --- ADD THIS FOR LINUX GPU SUPPORT ---
+    environment:
+      # These flags tell the NVIDIA driver to expose the GPU to Chromium
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,graphics,utility
     deploy:
       resources:
         reservations:
