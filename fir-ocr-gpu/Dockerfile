@@ -2,6 +2,10 @@ FROM nvidia/cuda:12.3.2-runtime-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1 \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
 
 # System deps
 RUN apt-get update && apt-get install -y \
