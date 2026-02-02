@@ -34,7 +34,7 @@ def get_stockpile_df_from_server(server_ip, image_path, label, stockpile="Public
 if __name__ == "__main__":
     # Example: Running from a different machine
     # Replace with your Ubuntu server IP
-    SERVER_IP = "localhost"
+    SERVER_IP = "192.168.50.44"
     
     df = get_stockpile_df_from_server(SERVER_IP, "sample_pictures/tine.png", "Remote_Tine_Report")
     if df is not None:

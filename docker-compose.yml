@@ -1,6 +1,6 @@
 services:
   fir-ocr:
-    runtime: nvidia
+    gpus: all
     shm_size: "1gb"
     build:
       context: .
@@ -12,6 +12,4 @@ services:
       - "5000:5000"
     restart: always
     environment:
-      - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,graphics,utility
-
