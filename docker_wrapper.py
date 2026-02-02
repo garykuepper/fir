@@ -23,18 +23,6 @@ subprocess.Popen(
 )
 
 
-def get_free_vram_mb() -> int | None:
-    """
-    Returns free VRAM in MiB for GPU 0, or None if nvidia-smi isn't available.
-    """
-    try:
-        out = subprocess.check_output(
-            ["nvidia-smi", "--query-gpu=memory.free", "--format=csv,noheader,nounits"],
-            text=True,
-        ).strip()
-        return int(out.splitlines()[0])
-    except Exception:
-        return None
 
 
 @app.route("/process", methods=["POST"])
@@ -55,30 +43,18 @@ def process_image():
     try:
         node_cmd = ["node", "headless_process.js", str(temp_image_path), label, stockpile, version]
 
-        # VRAM-aware mode: if Ollama is camping VRAM, fall back to CPU rendering.
-        free_mb = get_free_vram_mb()
-        vram_threshold_mb = int(os.getenv("FIR_VRAM_THRESHOLD_MB", "1000"))  # tune if needed
-
-        env = os.environ.copy()
-        env.setdefault("FIR_GPU_MODE", "gpu")  # default if not set
-
-        if free_mb is not None and free_mb < vram_threshold_mb:
-            env["FIR_GPU_MODE"] = "cpu"
 
         # Run the Node automation
         result = subprocess.run(
             node_cmd,
             capture_output=True,
             text=True,
-            env=env,
             timeout=int(os.getenv("FIR_NODE_TIMEOUT_SEC", "180")),
         )
 
         if result.returncode != 0:
             return jsonify({
                 "error": "headless_process failed",
-                "gpu_mode": env.get("FIR_GPU_MODE"),
-                "free_vram_mb": free_mb,
                 "stdout_tail": (result.stdout or "")[-2000:],
                 "stderr_tail": (result.stderr or "")[-2000:],
             }), 500

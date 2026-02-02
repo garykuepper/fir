@@ -23,37 +23,14 @@ if (!inputStockpileName || inputStockpileName === "" || inputStockpileName === "
 const inputVersion = args[3] || 'airborne-63';
 
 function buildLaunchArgs() {
-    const mode = (process.env.FIR_GPU_MODE || 'gpu').toLowerCase();
 
-    // Common container-safe args
-    const common = [
+    return [
         '--no-sandbox',
         '--disable-setuid-sandbox',
-        '--ignore-gpu-blocklist',
-    ];
-
-    // Best path for NVIDIA + Linux headless in containers
-    const gpu = [
-        '--use-gl=angle',
-        '--use-angle=gl-egl',
-        '--enable-gpu-rasterization',
-        '--enable-zero-copy',
-        '--ignore-gpu-blocklist',
-        '--disable-software-rasterizer',
-    ];
-
-    // CPU fallback (keeps pipeline working if Ollama is camping VRAM)
-    const cpu = [
+        '--disable-dev-shm-usage',
         '--disable-gpu',
         '--use-gl=swiftshader',
     ];
-
-    const launchArgs = mode === 'gpu'
-        ? [...common, ...gpu]
-        : [...common, ...cpu];
-
-    console.log(`Launching Chromium in ${mode.toUpperCase()} mode`);
-    return launchArgs;
 }
 
 (async () => {
