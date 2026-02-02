@@ -14,4 +14,20 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,graphics,utility
+      - FIR_OCR_BACKEND=gpu
+      - FIR_GPU_OCR_URL=http://fir-ocr-gpu:9000
 
+    depends_on:
+      - fir-ocr-gpu
+
+  fir-ocr-gpu:
+    runtime: nvidia
+    build:
+      context: ./fir-ocr-gpu
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    ports:
+      - "9000:9000"
