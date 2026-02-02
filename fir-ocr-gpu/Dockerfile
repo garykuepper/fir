@@ -4,11 +4,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 python3-pip \
-    libgl1 libglib2.0-0 \
-    libgomp1 \
-    curl \
-  && rm -rf /var/lib/apt/lists/*
+    python3 python3-pip libgl1 libglib2.0-0 curl libgomp1 binutils \
+ && rm -rf /var/lib/apt/lists/*
+
 
 
 WORKDIR /app
