@@ -7,7 +7,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip libgl1 libglib2.0-0 curl libgomp1 binutils \
  && rm -rf /var/lib/apt/lists/*
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libcublas-12-2 \
+    libcublaslt-12-2 \
+    libcusolver-12-2 \
+    libcusparse-12-2 \
+    libcurand-12-2 \
+    libcufft-12-2 \
+    libnvrtc12 \
+ && rm -rf /var/lib/apt/lists/*
 
+RUN ln -sf /usr/lib/x86_64-linux-gnu/libcudnn.so.8 /usr/lib/x86_64-linux-gnu/libcudnn.so && ldconfig
 
 WORKDIR /app
 
