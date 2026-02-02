@@ -31,3 +31,5 @@ services:
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
     ports:
       - "9000:9000"
+    volumes:
+      - ./paddle_cache:/root/.paddleocr
