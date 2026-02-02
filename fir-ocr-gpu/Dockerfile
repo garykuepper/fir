@@ -8,15 +8,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libcublas-12-2 \
-    libcublaslt-12-2 \
+    libcublas-12-2 libcublas-dev-12-2 \
     libcusolver-12-2 \
     libcusparse-12-2 \
     libcurand-12-2 \
     libcufft-12-2 \
-    libnvrtc12 \
+    cuda-nvrtc-12-2 cuda-nvrtc-dev-12-2 \
  && rm -rf /var/lib/apt/lists/*
 
+# Make sure the generic cuDNN soname exists (some frameworks dlopen("libcudnn.so"))
 RUN ln -sf /usr/lib/x86_64-linux-gnu/libcudnn.so.8 /usr/lib/x86_64-linux-gnu/libcudnn.so && ldconfig
 
 WORKDIR /app
@@ -24,11 +24,7 @@ WORKDIR /app
 COPY requirements.txt /app/requirements.txt
 RUN pip3 install --no-cache-dir -r /app/requirements.txt
 
-# Install Paddle GPU from Paddle's wheel index (CUDA 12.0 build label is commonly "post120")
-RUN pip3 install --no-cache-dir \
-    --extra-index-url https://paddlepaddle.github.io/whl/linux/mkl/ \
-    paddlepaddle-gpu==2.6.2
-
+RUN pip3 install --no-cache-dir paddlepaddle-gpu==2.6.2
 
 COPY app.py /app/app.py
 
