@@ -34,11 +34,12 @@ function buildLaunchArgs() {
 
     // Best path for NVIDIA + Linux headless in containers
     const gpu = [
-        '--use-gl=egl',
-        '--enable-gpu',
+        '--use-gl=angle',
+        '--use-angle=gl-egl',
+        '--enable-gpu-rasterization',
+        '--enable-zero-copy',
+        '--ignore-gpu-blocklist',
         '--disable-software-rasterizer',
-        // Optional: sometimes improves rendering paths
-        '--enable-features=UseSkiaRenderer',
     ];
 
     // CPU fallback (keeps pipeline working if Ollama is camping VRAM)

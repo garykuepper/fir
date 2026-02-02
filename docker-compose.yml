@@ -1,5 +1,6 @@
 services:
   fir-ocr:
+    container_name: fir-ocr
     runtime: nvidia
     shm_size: "1gb"
     build:
