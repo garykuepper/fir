@@ -66,8 +66,7 @@ def process_image():
             return jsonify({
                 "error": "TSV not found after processing",
                 "expected_path": str(tsv_path),
-                "gpu_mode": env.get("FIR_GPU_MODE"),
-                "free_vram_mb": free_mb,
+                "gpu_mode": os.environ.get("FIR_GPU_MODE"),
                 "stdout_tail": (result.stdout or "")[-2000:],
                 "stderr_tail": (result.stderr or "")[-2000:],
             }), 500
