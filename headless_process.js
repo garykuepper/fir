@@ -28,8 +28,8 @@ function buildLaunchArgs() {
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--use-gl=swiftshader',
+        '--enable-gpu-rasterization',
+        '--ignore-gpu-blocklist',
     ];
 }
 

@@ -13,4 +13,11 @@ services:
     restart: always
     environment:
       - TZ=America/Los_Angeles
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 

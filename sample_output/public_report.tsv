@@ -1,0 +1,16 @@
+Stockpile Title	Stockpile Name	Structure Type	Quantity	Name	Crated?	Per Crate	Total	Description	CodeName
+Public	Public	Safe House	99	Soldier Supplies	false		99	A standard issue set of supplies for foot soldiers. Bases must be stockpiled with Soldier Supplies in order for players to spawn.	SoldierSupplies
+Public	Public	Safe House	1000	Salvage	false		1000	Salvage that can be recycled into other resources at a Refinery	Metal
+Public	Public	Safe House	489	Bandages	false		489	Used to stem bleeding.	Bandages
+Public	Public	Safe House	90	No.2 Loughcaster	false		90	Standard-issue Warden rifle. This bolt-action firearm is as robust as they come and has seen over a century of use on the battlefield.	RifleW
+Public	Public	Safe House	66	14.5mm	false		66	Standard ammunition for anti-tank rifles.	ATRifleAmmo
+Public	Public	Safe House	13	Blood Plasma	false		13	A blood component used to treat wounded soldiers on the battlefield.	BloodPlasma
+Public	Public	Safe House	12	First Aid Kit	false		12	Used by medics to heal other soldiers.	FirstAidKit
+Public	Public	Safe House	11	Gas Mask	false		11	Protects against poison gas	GasMask
+Public	Public	Safe House	9	Gas Mask Filter	false		9	When attached to a Gas Mask, this filter provides fresh air to the wearer.	GasMaskFilter
+Public	Public	Safe House	8	120mm	false		8	Payload for light artillery weapons.	LightArtilleryAmmo
+Public	Public	Safe House	7	Trauma Kit	false		7	Used by medics to revive wounded soldiers.	TraumaKit
+Public	Public	Safe House	2	Buckshot	false		2	Standard ammunition for Shotguns.	ShotgunAmmo
+Public	Public	Safe House	2	Infantry Battledress	false		2	Most common Warden infantry uniform, designed for general frontline warfare with ballistics weapons such as rifles and machine guns.	SoldierUniformW
+Public	Public	Safe House	2	Shovel	false		2	A tool for digging Trenches and other entrenched structures.	Shovel
+Public	Public	Safe House	1	Sledge Hammer	false		1	A tool used to salvage components from remains of old vehicles and equipment.	SledgeHammer

@@ -1,6 +1,10 @@
 # Use Playwright's official image which has Node and Chromium dependencies
 FROM mcr.microsoft.com/playwright:v1.49.1-jammy
 
+# NVIDIA GPU Support
+ENV NVIDIA_VISIBLE_DEVICES all
+ENV NVIDIA_DRIVER_CAPABILITIES all
+
 # Install Python
 RUN apt-get update && apt-get install -y python3 python3-pip
 # Install Flask for the API
